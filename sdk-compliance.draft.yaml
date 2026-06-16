@@ -1,16 +1,13 @@
 # Compliance with the canonical Supabase SDK capability matrix.
 # Spec: https://github.com/supabase/sdk
 #
-# Hybrid file:
-#   - Method-derived entries (`# methods` block in each area) are produced by
-#     `pnpm tsx scripts/audit-sdk-compliance.ts`, which walks typedoc
-#     spec.json files. Re-run to refresh and diff against this file.
-#   - Non-method entries (`# non-method capabilities` block in each area) are
-#     hand-maintained: constructor options, channel options, server
-#     behaviors, and other capabilities that don't appear as public methods
-#     on the audited classes.
+# Generated from typedoc spec.json files of each core package. supabase-js
+# is the source of truth for the capability matrix; canon is derived from
+# this file.
 #
 # Unlisted features default to not_implemented.
+# To regenerate, run:
+#   pnpm tsx scripts/audit-sdk-compliance.ts
 
 sdk: javascript
 
@@ -130,14 +127,6 @@ features:
   database.using_modifiers.range: implemented
   database.using_modifiers.single_row: implemented
 
-  # database — non-method capabilities
-  database.mutate.select_after_mutation: implemented
-  database.using_modifiers.relationship_embed: implemented
-  database.using_modifiers.request_cancellation: implemented
-  database.using_modifiers.strip_nulls: implemented
-  database.configuration.auto_retry: implemented
-  database.configuration.request_timeout: implemented
-
   # storage
   storage.file_buckets.access_bucket: implemented
   storage.file_buckets.copy: implemented
@@ -163,31 +152,17 @@ features:
   storage.file_buckets.upload_with_signed_url: implemented
   storage.vector_buckets.access_vector_index: implemented
   storage.vector_buckets.create_index: implemented
+  storage.vector_buckets.create_vector_bucket: implemented
   storage.vector_buckets.delete_index: implemented
+  storage.vector_buckets.delete_vector_bucket: implemented
   storage.vector_buckets.delete_vectors: implemented
   storage.vector_buckets.get_index: implemented
   storage.vector_buckets.get_vectors: implemented
   storage.vector_buckets.list_indexes: implemented
+  storage.vector_buckets.list_vector_buckets: implemented
   storage.vector_buckets.list_vectors: implemented
   storage.vector_buckets.put_vectors: implemented
   storage.vector_buckets.query_vectors: implemented
-
-  # storage — non-method capabilities
-  storage.file_buckets.copy_cross_bucket: implemented
-  storage.file_buckets.move_cross_bucket: implemented
-  storage.file_buckets.download_as_stream: implemented
-  storage.file_buckets.download_with_transform: implemented
-  storage.file_buckets.upload_with_metadata: implemented
-  storage.file_buckets.url_cache_nonce: implemented
-  storage.vector_buckets.create_vector_bucket: implemented
-  storage.vector_buckets.delete_vector_bucket: implemented
-  storage.vector_buckets.list_vector_buckets: implemented
-  storage.vector_buckets.parallel_scan: implemented
-  storage.analytics.create_analytics_bucket: implemented
-  storage.analytics.list_analytics_buckets: implemented
-  storage.analytics.delete_analytics_bucket: implemented
-  storage.analytics.iceberg_namespace: implemented
-  storage.analytics.iceberg_table: implemented
 
   # realtime
   realtime.channel.broadcast_http: implemented
@@ -214,40 +189,6 @@ features:
   realtime.subscriptions.postgres_changes: implemented
   realtime.subscriptions.subscribe_presence: implemented
 
-  # realtime — non-method capabilities
-  realtime.subscriptions.broadcast_self: implemented
-  realtime.subscriptions.broadcast_ack: implemented
-  realtime.subscriptions.broadcast_replay: implemented
-  realtime.subscriptions.postgres_changes_filter: implemented
-  realtime.subscriptions.private_channel: implemented
-  realtime.presence.presence_key: implemented
-  realtime.configuration.access_token_callback: implemented
-  realtime.configuration.binary_protocol: implemented
-  realtime.configuration.custom_logger: implemented
-  realtime.configuration.custom_websocket_transport: implemented
-  realtime.configuration.deferred_disconnect: implemented
-  realtime.configuration.heartbeat_interval: implemented
-  realtime.configuration.reconnect_backoff: implemented
-
   # functions
   functions.invocation.invoke: implemented
   functions.invocation.set_auth_token: implemented
-
-  # functions — non-method capabilities
-  functions.invocation.method_override: implemented
-  functions.invocation.region_selection: implemented
-  functions.invocation.timeout: implemented
-  functions.invocation.request_cancellation: implemented
-  # JS returns parsed FunctionsResponse; no SSE pass-through today.
-  functions.invocation.streaming_response: not_implemented
-
-  # client — non-method capabilities (no auto-derived methods; SupabaseClient is not audited)
-  client.authentication_integration.third_party_auth: implemented
-  client.authentication_integration.cross_client_token_sync: implemented
-  client.authentication_integration.oauth_flow_type: implemented
-  client.authentication_integration.session_url_detection: implemented
-  client.session_management.custom_storage: implemented
-  client.session_management.persist_session: implemented
-  client.request_configuration.custom_http_client: implemented
-  client.request_configuration.global_headers: implemented
-  client.observability.trace_propagation: implemented

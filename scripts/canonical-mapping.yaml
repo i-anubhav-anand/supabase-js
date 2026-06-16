@@ -127,10 +127,22 @@ mappings:
   # Vector-bucket scoping operations
   storage.vector_buckets.index: storage.vector_buckets.access_vector_index
 
-  # StorageVectorsClient exposes bucket-level operations that overlap with
-  # the file-bucket API. Canon consolidates these under file-buckets.
-  storage.vector_buckets.create_bucket: storage.file_buckets.create_bucket
-  storage.vector_buckets.delete_bucket: storage.file_buckets.delete_bucket
+  # Canon renamed file-bucket lifecycle for symmetry with vector/analytics
+  # buckets (create_bucket → create_file_bucket, etc.). update_bucket and
+  # get_bucket were intentionally NOT renamed.
+  storage.file_buckets.create_bucket: storage.file_buckets.create_file_bucket
+  storage.file_buckets.delete_bucket: storage.file_buckets.delete_file_bucket
+  storage.file_buckets.list_buckets: storage.file_buckets.list_file_buckets
+
+  # Vector-bucket lifecycle has its own per-kind capability in canon — no
+  # longer consolidated under file-buckets.
+  storage.vector_buckets.create_bucket: storage.vector_buckets.create_vector_bucket
+  storage.vector_buckets.delete_bucket: storage.vector_buckets.delete_vector_bucket
+  storage.vector_buckets.list_buckets: storage.vector_buckets.list_vector_buckets
+
+  # from() is the bucket-scoping op; canon shares it across bucket kinds.
   storage.vector_buckets.from: storage.file_buckets.access_bucket
+
+  # StorageVectorsClient.getBucket() exists in JS but canon has no
+  # get_vector_bucket — bucket retrieval is shared with file_buckets.
   storage.vector_buckets.get_bucket: storage.file_buckets.get_bucket
-  storage.vector_buckets.list_buckets: storage.file_buckets.list_buckets
