@@ -1,10 +1,14 @@
 name: Validate SDK Compliance
 
+# Disabled until supabase/sdk goes public — the private-repo reusable
+# workflow can't be resolved by this caller today.
+# TODO: re-enable by uncommenting the pull_request trigger below.
 on:
-  pull_request:
-    paths:
-      - 'sdk-compliance.yaml'
-      - '.github/workflows/validate-capabilities.yml'
+  workflow_dispatch:
+  # pull_request:
+  #   paths:
+  #     - 'sdk-compliance.yaml'
+  #     - '.github/workflows/validate-capabilities.yml'
 
 permissions:
   contents: read
