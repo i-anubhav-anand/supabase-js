@@ -1,12 +1,18 @@
 #!/usr/bin/env node
 
 /**
- * Generate sdk-compliance.yaml from the public API surface of each core package.
+ * Refresh sdk-compliance.yaml's method-derived entries from typedoc spec.json.
  *
- * supabase-js is the source of truth for the Supabase SDK capability matrix.
- * This script walks each package's typedoc spec.json, collects public methods
- * on the main client classes, snake_cases them, and emits one
- * `<area>.<snake_method>: implemented` entry per method.
+ * Workflow: each supabase-js release that adds a public method, run this
+ * script, diff the resulting sdk-compliance.draft.yaml against the hand-
+ * curated sdk-compliance.yaml, and add the new IDs by hand. Non-method
+ * capabilities (constructor options, channel options, server behaviors)
+ * live only in sdk-compliance.yaml — typedoc can't see them.
+ *
+ * The script walks each package's typedoc spec.json, collects public methods
+ * on the audited client classes, snake_cases them, builds
+ * `<area>.<group_namespace>.<method>` IDs, and applies any rename entries
+ * from canonical-mapping.yaml before writing the draft.
  *
  * Run after the typedoc spec.json files are up to date (regenerate via the
  * docs target on each package).
@@ -14,11 +20,12 @@
  * Usage:
  *   pnpm tsx scripts/audit-sdk-compliance.ts [--out <path>]
  *
- * Default output: sdk-compliance.draft.yaml (never overwrites sdk-compliance.yaml).
+ * Default output: sdk-compliance.draft.yaml (gitignored; never overwrites
+ * sdk-compliance.yaml).
  *
- * To wire a new public class into the matrix: add its name (or a source-file
- * regex) to the AREAS list below. To suppress a method that appears in multiple
- * classes as boilerplate, add it to DENYLIST.
+ * To wire a new public class into the audit: add its name (or a source-file
+ * regex) to the AREAS list below. To suppress a method that appears as
+ * boilerplate across multiple classes, add it to DENYLIST.
  */
 
 import * as fs from 'fs'
@@ -27,8 +34,9 @@ import * as path from 'path'
 type ClassMatcher = string | RegExp
 
 // Splits an overloaded method into one feature per first-param literal value.
-// See sync-canon.ts for the rationale; realtime's RealtimeChannel.on() is
-// currently the only consumer.
+// Realtime's RealtimeChannel.on() is currently the only consumer — its
+// overloads keyed on 'broadcast' / 'presence' / 'postgres_changes' become
+// distinct features.
 interface SignatureSplitConfig {
   method: string
   by: 'first-param-literal'
@@ -55,8 +63,7 @@ interface AreaConfig {
   // to be matched by file path.
   matchers: ClassMatcher[]
   // Group definitions — supplies namespace overrides used by feature-id
-  // construction. Must mirror sync-canon.ts so the two scripts produce the
-  // same IDs.
+  // construction.
   groups: GroupConfig[]
   classToGroup: Record<string, string>
   byMethodPrefix?: { match: (snake: string) => boolean; group: string }[]
@@ -67,8 +74,6 @@ function defaultNamespace(groupId: string): string {
   return groupId.replace(/-/g, '_')
 }
 
-// Mirrors sync-canon.ts. Keep in sync — both scripts emit the same feature
-// ids, so changing one without the other breaks cross-validation.
 const AREAS: AreaConfig[] = [
   {
     area: 'auth',
@@ -408,9 +413,8 @@ function namespaceForGroup(groupId: string, area: AreaConfig): string {
 }
 
 // Walk the spec and emit a Set of fully-namespaced feature ids of the form
-// `<area>.<namespace>.<method_stem>`. Mirrors sync-canon.ts's resolution.
-// The optional `mapping` argument rewrites auto-derived ids to their canonical
-// equivalents (null means drop).
+// `<area>.<namespace>.<method_stem>`. The optional `mapping` argument rewrites
+// auto-derived ids to their canonical equivalents (null means drop).
 function collectMethods(
   spec: SpecNode,
   area: AreaConfig,
@@ -489,7 +493,6 @@ function collectMethods(
 // this pre-pass, signInWithOAuth becomes sign_in_with_o_auth because the
 // second regex splits OAuth → O_Auth. We pre-normalize OAuth → Oauth (and
 // similar) so only the first regex fires, yielding sign_in_with_oauth.
-// Keep in sync with sync-canon.ts.
 const ACRONYMS = ['OAuth', 'URL', 'SSO', 'JWT', 'JWKS', 'API', 'PKCE', 'OIDC', 'MFA', 'AAL']
 
 function preNormalizeAcronyms(name: string): string {
