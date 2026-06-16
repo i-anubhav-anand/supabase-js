@@ -6,6 +6,11 @@ on:
       - 'sdk-compliance.yaml'
       - '.github/workflows/validate-capabilities.yml'
 
+permissions:
+  contents: read
+
 jobs:
   validate:
+    permissions:
+      contents: read
     uses: supabase/sdk/.github/workflows/validate-sdk-compliance.yml@main
